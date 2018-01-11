@@ -1,21 +1,21 @@
 package c.example.bring;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.javahelps.memo.db.DatabaseAccess;
 
 public class EditActivity extends AppCompatActivity {
     private EditText etText;
     private Button btnSave;
     private Button btnCancel;
     private Memo memo;
+
+    private int requestCode;
+    private int position = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,12 +26,14 @@ public class EditActivity extends AppCompatActivity {
         this.btnSave = (Button) findViewById(R.id.btnSave);
         this.btnCancel = (Button) findViewById(R.id.btnCancel);
 
-        Bundle bundle = getIntent().getExtras();
-        if(bundle != null) {
-            memo = (Memo) bundle.get("MEMO");
-            if(memo != null) {
-                this.etText.setText(memo.getText());
-            }
+        requestCode = getIntent().getExtras().getInt("requestcode");
+        memo = new Memo();
+
+        if(requestCode == 3){
+            memo = new Memo(getIntent().getExtras().getLong("time"),
+                    getIntent().getExtras().getString("text"));
+            etText.setText(memo.getText());
+            position = getIntent().getExtras().getInt("pos");
         }
 
         this.btnSave.setOnClickListener(new View.OnClickListener() {
@@ -50,20 +52,12 @@ public class EditActivity extends AppCompatActivity {
     }
 
     public void onSaveClicked() {
-        DatabaseAccess databaseAccess = DatabaseAccess.getInstance(this);
-        databaseAccess.open();
-        if(memo == null) {
-            // Add new memo
-            Memo temp = new Memo();
-            temp.setText(etText.getText().toString());
-            databaseAccess.save(temp);
-        } else {
-            // Update the memo
-            memo.setText(etText.getText().toString());
-            databaseAccess.update(memo);
-        }
-        databaseAccess.close();
-        this.finish();
+        Intent res = new Intent();
+        res.putExtra("time", memo.getTime());
+        res.putExtra("text", etText.getText().toString());
+        res.putExtra("pos", position);
+        setResult(RESULT_OK, res);
+        finish();
     }
 
     public void onCancelClicked() {
