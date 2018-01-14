@@ -53,11 +53,14 @@ public class MainActivity extends AppCompatActivity {
 
 package c.example.bring;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -84,10 +87,10 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private RelativeLayout mainContent, listContent;
+    private Toolbar toolbar;
 
     private DrawerLayout drawerLayout;
     private ListView lists;
-    private ArrayList<String> listNames;
     private String selectedList;
     private DrawerItemClickLister drawerItemClickLister;
 
@@ -103,19 +106,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.drawer_layout);
 
         /*** INITIALIZING ***/
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar = (Toolbar) findViewById(R.id.actionbar);
+        setSupportActionBar(toolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //getSupportActionBar().setHomeAsUpIndicator(R.drawable.drawer);
 
-        listNames = refreshDrawerList();
+
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         lists = (ListView) findViewById(R.id.drawerlist);
 
-        drawerItemClickLister = new DrawerItemClickLister(getSupportActionBar(), listNames, lists, drawerLayout){
+        drawerItemClickLister = new DrawerItemClickLister(getSupportActionBar(), new ArrayList<String>(), lists, drawerLayout){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 super.onItemClick(parent, view, position, id);
                 StringBuilder sb = new StringBuilder();
-                sb.append((String)lists.getAdapter().getItem(position));
+                sb.append((String) lists.getAdapter().getItem(position));
                 selectedList = sb.toString();
                 sb.append(".json");
                 try {
@@ -127,11 +133,12 @@ public class MainActivity extends AppCompatActivity {
                 listItems.setAdapter(memoAdapter);
                 mainContent.setVisibility(View.GONE);
                 listContent.setVisibility(View.VISIBLE);
+                toolbar.getMenu().clear();
+                getMenuInflater().inflate(R.menu.listmenu, toolbar.getMenu());
             }
         };
 
-        lists.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, listNames));
-        lists.setOnItemClickListener(drawerItemClickLister);
+        renewDrawer();
 
         openListBtn = (Button) findViewById(R.id.openButton);
         createListBtn = (Button) findViewById(R.id.createButton);
@@ -240,11 +247,7 @@ public class MainActivity extends AppCompatActivity {
         /*** 3 = edit list item         ***/
         /**********************************/
         if(requestCode==1){
-            Log.e("LIST", "refreshing list");
-            listNames = refreshDrawerList();
-            drawerItemClickLister.setListNames(listNames);
-            lists.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, listNames));
-            lists.setOnItemClickListener(drawerItemClickLister);
+            renewDrawer();
         }
         if(requestCode == 2 && resultCode == RESULT_OK){
             memos.add(new Memo(data.getExtras().getLong("time"), data.getExtras().getString("text")));
@@ -270,11 +273,50 @@ public class MainActivity extends AppCompatActivity {
             case android.R.id.home:
                 toggleDrawer();
                 return true;
+            case R.id.action_rename:
+                //rename list here
+                break;
+            case R.id.action_delete:
+
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case DialogInterface.BUTTON_POSITIVE:
+                                //delete current list
+                                StringBuilder fileName = new StringBuilder();
+                                fileName.append(selectedList).append(".json");
+                                File f = new File(getFilesDir().getAbsolutePath()+"/"+CreateListActivity.LISTPATH+"/"+fileName.toString());
+                                if(f.exists()) f.delete();
+                                renewDrawer();
+                                //got to menu
+                                goToMenu();
+                                break;
+
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                //do nothing
+                                break;
+                        }
+                    }
+                };
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(getString(R.string.deleteconfirmation)).setPositiveButton(getString(R.string.yes), dialogClickListener)
+                        .setNegativeButton(getString(R.string.no), dialogClickListener).show();
+
+                break;
+            case R.id.action_home:
+                goToMenu();
+                break;
+            default:
+                return MainActivity.super.onMenuItemSelected(item.getItemId(), item);
+        }
+        switch (item.getItemId()){
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private ArrayList<String> refreshDrawerList(){
+    private void renewDrawer(){
         ArrayList<String> jsonFiles = new ArrayList<String>();
         File files = new File(getFilesDir().getAbsolutePath() + "/" + CreateListActivity.LISTPATH);
         if(files.isDirectory()){
@@ -285,7 +327,9 @@ public class MainActivity extends AppCompatActivity {
                 jsonFiles.add(s.substring(0, s.length()-5));
             }
         }
-        return jsonFiles;
+        drawerItemClickLister.setListNames(jsonFiles);
+        lists.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, jsonFiles));
+        lists.setOnItemClickListener(drawerItemClickLister);
     }
 
     private void toggleDrawer(){
@@ -293,6 +337,12 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(lists);
         else
             drawerLayout.openDrawer(lists);
+    }
 
+    private void goToMenu(){
+        mainContent.setVisibility(View.VISIBLE);
+        listContent.setVisibility(View.GONE);
+        toolbar.getMenu().clear();
+        toolbar.setTitle(R.string.app_name);
     }
 }

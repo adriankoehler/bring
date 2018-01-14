@@ -8,4 +8,12 @@
     <string name="create">Create list</string>
     <string name="open">Open list</string>
     <string name="listname">List name</string>
+
+    <string name="rename">Rename</string>
+    <string name="delete">Delete</string>
+    <string name="home">Home</string>
+
+    <string name="deleteconfirmation">Do you want to delete this list?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>
