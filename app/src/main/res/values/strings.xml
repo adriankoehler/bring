@@ -4,6 +4,7 @@
     <string name="bring_excl">bring!</string>
     <string name="edititem">Edit list item</string>
     <string name="addlist">Add new list</string>
+    <string name="renamelist">Rename list</string>
 
     <string name="create">Create list</string>
     <string name="open">Open list</string>

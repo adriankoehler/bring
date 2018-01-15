@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
 
 package c.example.bring;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -63,7 +62,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -160,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(MainActivity.this, CreateListActivity.class);
+                i.putExtra("editname", false);
                 startActivityForResult(i, 1);
             }
         });
@@ -245,6 +244,7 @@ public class MainActivity extends AppCompatActivity {
         /*** 1 = new list               ***/
         /*** 2 = new list item          ***/
         /*** 3 = edit list item         ***/
+        /*** 4 = rename list            ***/
         /**********************************/
         if(requestCode==1){
             renewDrawer();
@@ -263,6 +263,12 @@ public class MainActivity extends AppCompatActivity {
             listItems.setAdapter(memoAdapter);
             Memo.saveMemoToJsonFile(getApplicationContext(), memos, selectedList);
         }
+        if(requestCode == 4 && resultCode == RESULT_OK){
+            renewDrawer();
+            String n = data.getExtras().getString("newname");
+            selectedList = n;
+            getSupportActionBar().setTitle(n);
+        }
     }
 
     @Override
@@ -274,10 +280,12 @@ public class MainActivity extends AppCompatActivity {
                 toggleDrawer();
                 return true;
             case R.id.action_rename:
-                //rename list here
+                Intent i = new Intent(MainActivity.this, CreateListActivity.class);
+                i.putExtra("editname", true);
+                i.putExtra("filename", selectedList);
+                startActivityForResult(i, 4);
                 break;
             case R.id.action_delete:
-
                 DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
