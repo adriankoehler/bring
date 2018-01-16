@@ -47,6 +47,16 @@
                     android:layout_centerVertical="true"
                     android:text="@string/open" />
 
+                <Button
+                    android:id="@+id/downloadButton"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@+id/openButton"
+                    android:layout_alignStart="@+id/openButton"
+                    android:layout_below="@+id/openButton"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/download" />
+
             </RelativeLayout>
 
             <RelativeLayout

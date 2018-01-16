@@ -17,4 +17,8 @@
         android:title="@string/home"
         app:showAsAction="never" />
 
+    <item android:id="@+id/action_upload"
+        android:title="@string/upload"
+        app:showAsAction="never" />
+
 </menu>

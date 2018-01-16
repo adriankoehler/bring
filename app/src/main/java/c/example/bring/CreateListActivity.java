@@ -27,47 +27,65 @@ public class CreateListActivity extends AppCompatActivity {
         save = (Button) findViewById(R.id.saveNewListBtn);
         name = (EditText) findViewById(R.id.listNameEdit);
 
-        boolean editname = getIntent().getExtras().getBoolean("editname");
 
-        if(editname){
-            setTitle(getString(R.string.renamelist));
-            final String filename = getIntent().getExtras().getString("filename");
-            name.setText(filename);
-            save.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    File old = new File(getApplicationContext().getFilesDir().getAbsolutePath() + "/" + LISTPATH, filename + ".json");
-                    File newf = new File(getApplicationContext().getFilesDir().getAbsolutePath() + "/" + LISTPATH, name.getText().toString()+".json");
-                    if(old.exists()){
-                        old.renameTo(newf);
-                        Intent i = new Intent();
-                        i.putExtra("newname", name.getText().toString());
-                        setResult(RESULT_OK, i);
+        if(getIntent().getExtras().containsKey("editname")) {
+            boolean editname = getIntent().getExtras().getBoolean("editname");
+            if (editname) {
+                setTitle(getString(R.string.renamelist));
+                save.setText(getString(R.string.okay));
+                final String filename = getIntent().getExtras().getString("filename");
+                name.setText(filename);
+                save.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        File old = new File(getApplicationContext().getFilesDir().getAbsolutePath() + "/" + LISTPATH, filename + ".json");
+                        File newf = new File(getApplicationContext().getFilesDir().getAbsolutePath() + "/" + LISTPATH, name.getText().toString() + ".json");
+                        if (old.exists()) {
+                            old.renameTo(newf);
+                            Intent i = new Intent();
+                            i.putExtra("newname", name.getText().toString());
+                            setResult(RESULT_OK, i);
+                            finish();
+                        }
+                        setResult(RESULT_CANCELED, getIntent());
                         finish();
                     }
-                    setResult(RESULT_CANCELED, getIntent());
-                    finish();
-                }
-            });
+                });
+            } else {
+                save.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        File dir = new File(getApplicationContext().getFilesDir(), LISTPATH);
+                        if (dir.exists() && !dir.isDirectory()) dir.delete();
+                        if (!dir.exists()) {
+                            dir.mkdir();
+                        }
+                        File newFile = new File(getApplicationContext().getFilesDir().getAbsolutePath() + "/" + LISTPATH, name.getText().toString() + ".json");
+                        if (newFile.exists())
+                            newFile.delete();
+                        try {
+                            newFile.createNewFile();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        finish();
+                    }
+                });
+            }
         }
-        else {
+
+        if(getIntent().getExtras().containsKey("download")){
+
+            setTitle(getString(R.string.downloadlist));
+            save.setText(getString(R.string.dl));
+
             save.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    File dir = new File(getApplicationContext().getFilesDir(), LISTPATH);
-                    if (dir.exists() && !dir.isDirectory()) dir.delete();
-                    if (!dir.exists()) {
-                        dir.mkdir();
-                    }
-                    File newFile = new File(getApplicationContext().getFilesDir().getAbsolutePath() + "/" + LISTPATH, name.getText().toString() + ".json");
-                    if (newFile.exists())
-                        newFile.delete();
-                    try {
-                        newFile.createNewFile();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
+                    String path = name.getText().toString()+".json";
+                    Memo.downloadList(getApplicationContext(), path, new File(getApplicationContext().getFilesDir().getAbsolutePath()+"/"+LISTPATH+"/"+path));
+                    setResult(RESULT_OK, getIntent());
                     finish();
                 }
             });

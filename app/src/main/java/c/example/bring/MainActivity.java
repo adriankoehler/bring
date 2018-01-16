@@ -92,11 +92,11 @@ public class MainActivity extends AppCompatActivity {
     private String selectedList;
     private DrawerItemClickLister drawerItemClickLister;
 
-    private Button openListBtn, createListBtn;
+    private Button openListBtn, createListBtn, downloadListBtn;
     private ListView listItems;
     private MemoAdapter memoAdapter;
     private FloatingActionButton addMemoItemBtn;
-    private List<Memo> memos;
+    private ListObject listObject;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,16 +123,19 @@ public class MainActivity extends AppCompatActivity {
                 selectedList = sb.toString();
                 sb.append(".json");
                 try {
-                    memos = Memo.getMemosFromJsonFile(getApplicationContext(), sb.toString());
+                    listObject = Memo.getListObject(getApplicationContext(), sb.toString());
                 } catch (JSONException e) {
-                    memos = new LinkedList<>();
+                    listObject = new ListObject(new LinkedList<Memo>(), false, ListType.MEMO);
                 }
-                memoAdapter = new MemoAdapter(getApplicationContext(), memos);
+                memoAdapter = new MemoAdapter(getApplicationContext(), listObject.getMemos());
                 listItems.setAdapter(memoAdapter);
                 mainContent.setVisibility(View.GONE);
                 listContent.setVisibility(View.VISIBLE);
                 toolbar.getMenu().clear();
-                getMenuInflater().inflate(R.menu.listmenu, toolbar.getMenu());
+                if(!listObject.isOnline())
+                    getMenuInflater().inflate(R.menu.listmenu, toolbar.getMenu());
+                else
+                    getMenuInflater().inflate(R.menu.onlinelistmenu, toolbar.getMenu());
             }
         };
 
@@ -140,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
         openListBtn = (Button) findViewById(R.id.openButton);
         createListBtn = (Button) findViewById(R.id.createButton);
+        downloadListBtn = (Button) findViewById(R.id.downloadButton);
 
         mainContent = (RelativeLayout) findViewById(R.id.maincontent);
         listContent = (RelativeLayout) findViewById(R.id.listcontent);
@@ -162,7 +166,14 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(i, 1);
             }
         });
-
+        downloadListBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, CreateListActivity.class);
+                i.putExtra("download", true);
+                startActivityForResult(i, 5);
+            }
+        });
 
         /*** LIST DISPLAY ***/
         addMemoItemBtn.setOnClickListener(new View.OnClickListener() {
@@ -228,10 +239,10 @@ public class MainActivity extends AppCompatActivity {
             btnDelete.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    memos.remove(pos);
-                    memoAdapter = new MemoAdapter(getApplicationContext(), memos);
+                    listObject.getMemos().remove(pos);
+                    memoAdapter = new MemoAdapter(getApplicationContext(), listObject.getMemos());
                     listItems.setAdapter(memoAdapter);
-                    Memo.saveMemoToJsonFile(getApplicationContext(), memos, selectedList);
+                    Memo.saveMemoToJsonFile(getApplicationContext(), listObject, selectedList);
                 }
             });
             return convertView;
@@ -245,29 +256,33 @@ public class MainActivity extends AppCompatActivity {
         /*** 2 = new list item          ***/
         /*** 3 = edit list item         ***/
         /*** 4 = rename list            ***/
+        /**  5 = download list          ***/
         /**********************************/
         if(requestCode==1){
             renewDrawer();
         }
         if(requestCode == 2 && resultCode == RESULT_OK){
-            memos.add(new Memo(data.getExtras().getLong("time"), data.getExtras().getString("text")));
-            memoAdapter = new MemoAdapter(getApplicationContext(), memos);
+            listObject.getMemos().add(new Memo(data.getExtras().getLong("time"), data.getExtras().getString("text")));
+            memoAdapter = new MemoAdapter(getApplicationContext(), listObject.getMemos());
             listItems.setAdapter(memoAdapter);
-            Memo.saveMemoToJsonFile(getApplicationContext(), memos, selectedList);
+            Memo.saveMemoToJsonFile(getApplicationContext(), listObject, selectedList);
         }
         if(requestCode == 3 && resultCode == RESULT_OK){
-            memos.remove(data.getExtras().getInt("pos"));
-            memos.add(data.getExtras().getInt("pos"),
+            listObject.getMemos().remove(data.getExtras().getInt("pos"));
+            listObject.getMemos().add(data.getExtras().getInt("pos"),
                     new Memo(data.getExtras().getLong("time"), data.getExtras().getString("text")));
-            memoAdapter = new MemoAdapter(getApplicationContext(), memos);
+            memoAdapter = new MemoAdapter(getApplicationContext(), listObject.getMemos());
             listItems.setAdapter(memoAdapter);
-            Memo.saveMemoToJsonFile(getApplicationContext(), memos, selectedList);
+            Memo.saveMemoToJsonFile(getApplicationContext(), listObject, selectedList);
         }
         if(requestCode == 4 && resultCode == RESULT_OK){
             renewDrawer();
             String n = data.getExtras().getString("newname");
             selectedList = n;
             getSupportActionBar().setTitle(n);
+        }
+        if(requestCode == 5 && resultCode == RESULT_OK){
+            renewDrawer();
         }
     }
 
@@ -311,10 +326,35 @@ public class MainActivity extends AppCompatActivity {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage(getString(R.string.deleteconfirmation)).setPositiveButton(getString(R.string.yes), dialogClickListener)
                         .setNegativeButton(getString(R.string.no), dialogClickListener).show();
-
                 break;
             case R.id.action_home:
                 goToMenu();
+                break;
+            case R.id.action_upload:
+                //make list online
+                Memo.makeOnline(getApplicationContext(), selectedList, listObject);
+                //then upload
+                Memo.uploadList(getApplicationContext(), selectedList);
+                //change action bar
+                toolbar.getMenu().clear();
+                getMenuInflater().inflate(R.menu.onlinelistmenu, toolbar.getMenu());
+                break;
+            case R.id.action_refresh:
+                try {
+                    listObject = Memo.getListObject(getApplicationContext(), selectedList + ".json");
+                    memoAdapter = new MemoAdapter(getApplicationContext(), listObject.getMemos());
+                    listItems.setAdapter(memoAdapter);
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.action_share:
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.sharetext, selectedList));
+                sendIntent.setType("text/plain");
+                startActivity(Intent.createChooser(sendIntent, getString(R.string.share)));
+
                 break;
             default:
                 return MainActivity.super.onMenuItemSelected(item.getItemId(), item);
