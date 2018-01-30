@@ -77,7 +77,7 @@
                     android:layout_marginRight="20dp"
                     android:clickable="true"
                     android:focusable="true"
-                    android:foreground="@drawable/add"
+                    android:foreground="@drawable/add1"
                     android:tint="@android:color/background_light" />
 
                 <ListView
