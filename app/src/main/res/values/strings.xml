@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">bring!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Einstellungen</string>
     <string name="bring_excl">bring!</string>
-    <string name="edititem">Edit list item</string>
-    <string name="addlist">Add new list</string>
-    <string name="renamelist">Rename list</string>
-    <string name="downloadlist">List to download:</string>
+    <string name="edititem">Element editieren</string>
+    <string name="addlist">Neue Liste Hinzufügen</string>
+    <string name="renamelist">Liste umbenennen</string>
+    <string name="downloadlist">Liste zum Herunterladen</string>
     <string name="okay">Okay</string>
-    <string name="dl">Download</string>
-    <string name="error">Something went wrong</string>
+    <string name="dl">Herunterladen</string>
+    <string name="error">Ein Fehler ist aufgetreten</string>
 
-    <string name="create">Create list</string>
-    <string name="open">Open list</string>
-    <string name="download">Download list</string>
-    <string name="listname">List name</string>
+    <string name="create">Neue Liste erstellen</string>
+    <string name="open">Bestehende Liste öffnen</string>
+    <string name="download">Liste herunterladen</string>
+    <string name="listname">Name der Liste</string>
 
-    <string name="rename">Rename</string>
-    <string name="delete">Delete</string>
-    <string name="home">Home</string>
-    <string name="upload">Upload</string>
-    <string name="share">Share</string>
-    <string name="refresh">Refresh</string>
+    <string name="rename">Umbennenen</string>
+    <string name="delete">Löschen</string>
+    <string name="home">Hauptmenü</string>
+    <string name="upload">Hochladen</string>
+    <string name="share">Teilen</string>
+    <string name="refresh">Aktualisieren</string>
 
-    <string name="deleteconfirmation">Do you want to delete this list?</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
+    <string name="deleteconfirmation">Möchten Sie diese Liste löschen?</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
 
-    <string name="sharetext">>Hey! Check out this list:\n%1$s</string>
+    <string name="sharetext">>Hey! Schau dir diese Liste an:\n%1$s</string>
 </resources>
+
